@@ -27,6 +27,7 @@ String keys =
     "{view v          |3     | initial view}";
 
 constexpr auto WINDOW_NAME = "Video Compare by Tan SU";
+constexpr auto NORMAL_DELAY = 9;
 
 enum class View { Unknown = 0, V1 = 1, V2 = 2, Horizontal = 3, Vertial = 4 };
 enum class Status { Stop = 0, Play = 1 };
@@ -68,9 +69,9 @@ int main(int argc, char *argv[]) {
     int original_delay = 1000 / cap1.get(CAP_PROP_FPS);
     int delay = original_delay;
 
+    Timer t;
     while (true) {
         // Read Frame
-        Timer t;
         if (status == Status::Play) {
             if (!cap1.read(v1)) {
                 break;
@@ -81,6 +82,8 @@ int main(int argc, char *argv[]) {
         }
         int height = max(v1.rows, v2.rows);
         int width = max(v1.cols, v2.cols);
+        resize(v1, v1, Size(width, height));
+        resize(v2, v2, Size(width, height));
         int channel = max(v1.channels(), v2.channels());
 
         // Zoom
@@ -122,7 +125,7 @@ int main(int argc, char *argv[]) {
             key = cv::waitKey();
             break;
         case Status::Play:
-            key = cv::waitKey(max(delay - static_cast<int>(t.Pass()), 1));
+            key = cv::waitKey(max(delay - static_cast<int>(t.Pass() + NORMAL_DELAY), 1));
             break;
         default:
             break;
@@ -162,5 +165,6 @@ int main(int argc, char *argv[]) {
         float percent = cap1.get(CAP_PROP_POS_FRAMES) / cap1.get(CAP_PROP_FRAME_COUNT) * 100.0;
         float fps = 1000 / t.Pass();
         printf("\rpercent: %03.2f%%  fps: %f", percent, fps);
+        t.Reset();
     }
 }
