@@ -68,12 +68,13 @@ private:
 
 int main(int argc, char *argv[]) {
     auto parser = CommandLineParser(argc, argv, keys);
-    if (!parser.check() || !parser.has("@1") || !parser.has("@2")) {
-        parser.printMessage();
-        return -1;
-    }
     parser.about(ABOUT);
     parser.printMessage();
+    if (!parser.check() || !parser.has("@1") || !parser.has("@2")) {
+        printf("press any key to exit.");
+        getchar();
+        return -1;
+    }
 
     string file1 = parser.get<string>("@1");
     string file2 = parser.get<string>("@2");
@@ -193,8 +194,6 @@ int main(int argc, char *argv[]) {
             frame.create(frame_height * 2, frame_width, CV_8UC(channel));
             frame1 = frame(Rect(0, 0, frame_width, frame_height));
             frame2 = frame(Rect(0, frame_height, frame_width, frame_height));
-            v1 = v1(roi);
-            v2 = v2(roi);
             resize(v1(roi), frame1, frame1.size());
             resize(v2(roi), frame2, frame2.size());
             break;
