@@ -1,5 +1,9 @@
 #include <opencv2/opencv.hpp>
 
+#if WIN32
+#include <WinUser.h>
+#endif
+
 using namespace cv;
 using namespace std;
 
@@ -17,6 +21,8 @@ constexpr auto ABOUT =
     "Play                                 \n"
     "    space - pause / resume           \n"
     "    esc - quit                       \n"
+    "    left arrow - 5 second backward   \n"
+    "    right arrow - 5 second forward   \n"
     "View                                 \n"
     "    q - zoom out                     \n"
     "    e - zoom in                      \n"
@@ -80,7 +86,7 @@ int main(int argc, char *argv[]) {
         printf("can't open video. ");
         return -1;
     }
-    Mat v1, v2;
+    Mat v1, v2, v1_o, v2_o;
     auto view = static_cast<View>(parser.get<int>("view"));
     Status status = Status::Play;
     Mode crop_scale = Mode::Scale;
@@ -101,17 +107,21 @@ int main(int argc, char *argv[]) {
     while (true) {
         // Read Frame
         if (status == Status::Play) {
-            auto _v1 = v1;
-            auto _v2 = v2;
-            if (!cap1.read(v1) || !cap2.read(v2)) {
+            if (!cap1.read(v1_o) || !cap2.read(v2_o)) {
                 status = Status::Stop;
                 cap1.release();
                 cap2.release();
-                v1 = _v1;
-                v2 = _v2;
                 cap1.open(file1);
                 cap2.open(file2);
             }
+            else {
+                v1 = v1_o;
+                v2 = v2_o;
+            }
+        }
+        if (v1.empty() || v2.empty()) {
+            perror("failed to read frames. \n");
+            break;
         }
         int channel = max(v1.channels(), v2.channels());
         int height, width;
@@ -169,22 +179,18 @@ int main(int argc, char *argv[]) {
         switch (view) {
         case View::V1:
             frame.create(frame_height, frame_width, CV_8UC(channel));
-            v1 = v1(roi);
-            resize(v1, frame, frame.size());
+            resize(v1(roi), frame, frame.size());
             break;
         case View::V2:
             frame.create(frame_height, frame_width, CV_8UC(channel));
-            v2 = v2(roi);
-            resize(v2, frame, frame.size());
+            resize(v2(roi), frame, frame.size());
             break;
         case View::Horizontal:
             frame.create(frame_height, frame_width * 2, CV_8UC(channel));
             frame1 = frame(Rect(0, 0, frame_width, frame_height));
             frame2 = frame(Rect(frame_width, 0, frame_width, frame_height));
-            v1 = v1(roi);
-            v2 = v2(roi);
-            resize(v1, frame1, frame1.size());
-            resize(v2, frame2, frame2.size());
+            resize(v1(roi), frame1, frame1.size());
+            resize(v2(roi), frame2, frame2.size());
             break;
         case View::Vertial:
             frame.create(frame_height * 2, frame_width, CV_8UC(channel));
@@ -192,8 +198,8 @@ int main(int argc, char *argv[]) {
             frame2 = frame(Rect(0, frame_height, frame_width, frame_height));
             v1 = v1(roi);
             v2 = v2(roi);
-            resize(v1, frame1, frame1.size());
-            resize(v2, frame2, frame2.size());
+            resize(v1(roi), frame1, frame1.size());
+            resize(v2(roi), frame2, frame2.size());
             break;
         case View::Unknown:
         default:
@@ -208,7 +214,7 @@ int main(int argc, char *argv[]) {
             key = cv::waitKey();
             break;
         case Status::Play:
-            key = cv::waitKey(max(delay - static_cast<int>(t.Pass() + NORMAL_DELAY), 1));
+            key = cv::waitKeyEx(max(delay - static_cast<int>(t.Pass() + NORMAL_DELAY), 1));
             t.Reset();
             break;
         default:
@@ -249,13 +255,13 @@ int main(int argc, char *argv[]) {
         else if (key == 'q') {
             zoom /= 1.1f;
             if (zoom < 1) {
-                zoom == 1.f;
+                zoom = 1.f;
             }
         }
         else if (key == 'e') {
             zoom *= 1.1f;
             if (zoom > 10) {
-                zoom == 10.f;
+                zoom = 10.f;
             }
         }
         // pan
