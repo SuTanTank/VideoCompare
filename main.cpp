@@ -66,6 +66,11 @@ private:
     double tick = 0;
 };
 
+string MakeTitle(const string &prefix, const string &file1, const string &file2) {
+    string title = prefix + " - [1]" + file1 + "  [2]" + file2;
+    return title;
+}
+
 int main(int argc, char *argv[]) {
     auto parser = CommandLineParser(argc, argv, keys);
     parser.about(ABOUT);
@@ -91,8 +96,8 @@ int main(int argc, char *argv[]) {
     auto zoom = 1.;
     auto center = Point2f(0.5f, 0.5f);
     Point offset(0, 0);
-
-    namedWindow(WINDOW_NAME, WINDOW_NORMAL);
+    string window_title = MakeTitle(WINDOW_NAME, file1, file2);
+    namedWindow(window_title, WINDOW_NORMAL);
     Mat frame, frame1, frame2;
     int original_delay = 1000 / cap1.get(CAP_PROP_FPS) + 0.5;
     int delay = original_delay;
@@ -203,7 +208,7 @@ int main(int argc, char *argv[]) {
         }
 
         // display
-        cv::imshow(WINDOW_NAME, frame);
+        cv::imshow(window_title, frame);
         int key = 0;
         switch (status) {
         case Status::Stop:
