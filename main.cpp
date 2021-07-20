@@ -1,9 +1,5 @@
 #include <opencv2/opencv.hpp>
 
-#if WIN32
-#include <WinUser.h>
-#endif
-
 using namespace cv;
 using namespace std;
 
@@ -15,29 +11,31 @@ String keys =
     "{view v          |3     | initial view}";
 
 constexpr auto ABOUT =
-    "Video Compare Tool by Tan SU         \n"
-    "--------- USER MANUAL -------------  \n"
-    "                                     \n"
-    "Play                                 \n"
-    "    space - pause / resume           \n"
-    "    esc - quit                       \n"
-    "    left arrow - 5 second backward   \n"
-    "    right arrow - 5 second forward   \n"
-    "View                                 \n"
-    "    q - zoom out                     \n"
-    "    e - zoom in                      \n"
-    "    wasd - pan all video             \n"
-    "    WASD - pan the first video in pixel\n"
+    "Video Compare Tool by Tan SU           \n"
+    "--------- USER MANUAL -------------    \n"
+    "                                       \n"
+    "Play                                   \n"
+    "    space - pause / resume             \n"
+    "    esc - quit                         \n"
+    "    left arrow(play) - 3 second back   \n"
+    "    left arrow(pause) - 1 frame back   \n"
+    "    right arrow(play) - 3 second ahead \n"
+    "    right arrow(pause) - 1 frame ahead \n"
+    "View                                   \n"
+    "    q - zoom out                       \n"
+    "    e - zoom in                        \n"
+    "    wasd - pan all video               \n"
+    //"    WASD - pan the first video in pixel\n"
     "    1 - switch to #1 video             \n"
     "    2 - switch to #2 video             \n"
     "    3 - switch to horitonzal view      \n"
     "    4 - switch to vertical view        \n"
     "    f - switch between scale and crop  \n"
-    "        (when video size are different) \n"
-    "Speed                                \n"
-    "    z - speed down                   \n"
-    "    x - speed reset                  \n"
-    "    c - speed up                     \n";
+    "        (when video size are different)\n"
+    "Speed                                  \n"
+    "    z - speed down                     \n"
+    "    x - speed reset                    \n"
+    "    c - speed up                       \n";
 
 constexpr auto WINDOW_NAME = "Video Compare by Tan SU";
 constexpr auto NORMAL_DELAY = 5;
@@ -75,7 +73,6 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     parser.about(ABOUT);
-
     parser.printMessage();
 
     string file1 = parser.get<string>("@1");
@@ -211,7 +208,7 @@ int main(int argc, char *argv[]) {
         int key = 0;
         switch (status) {
         case Status::Stop:
-            key = cv::waitKey();
+            key = cv::waitKeyEx();
             break;
         case Status::Play:
             key = cv::waitKeyEx(max(delay - static_cast<int>(t.Pass() + NORMAL_DELAY), 1));
@@ -221,6 +218,11 @@ int main(int argc, char *argv[]) {
             break;
         }
         // handle key
+#ifndef NDEBUG
+        if (key >= 0) {
+            cout << "key: " << key << endl;
+        }
+#endif
         // pause play
         if (key == ' ') {
             PausePlay(status);
@@ -289,10 +291,39 @@ int main(int argc, char *argv[]) {
         else if (key == 'D') {
             offset.x += 1;
         }
+#if WIN32
+        else if (key / 0x10000 == 0x25) {
+            if (status == Status::Play) {
+                cap1.set(cv::CAP_PROP_POS_MSEC, cap1.get(cv::CAP_PROP_POS_MSEC) - 3000);
+                cap2.set(cv::CAP_PROP_POS_MSEC, cap2.get(cv::CAP_PROP_POS_MSEC) - 3000);
+            }
+            else {
+                cap1.set(cv::CAP_PROP_POS_FRAMES, cap1.get(cv::CAP_PROP_POS_FRAMES) - 2);
+                cap2.set(cv::CAP_PROP_POS_FRAMES, cap2.get(cv::CAP_PROP_POS_FRAMES) - 2);
+                cap1.read(v1);
+                cap2.read(v2);
+            }
+        }
+        else if (key / 0x10000 == 0x27) {
+            if (status == Status::Play) {
+                cap1.set(cv::CAP_PROP_POS_MSEC, cap1.get(cv::CAP_PROP_POS_MSEC) + 3000);
+                cap2.set(cv::CAP_PROP_POS_MSEC, cap2.get(cv::CAP_PROP_POS_MSEC) + 3000);
+            }
+            else {
+                if (cap1.read(v1_o) && cap2.read(v2_o)) {
+                    v1 = v1_o;
+                    v2 = v2_o;
+                }
+            }
+        }
+#endif
         // quit
         else if (key == ESC_KEY) {
             break;
         }
+#ifndef NDEBUG
+        cout << cap1.get(cv::CAP_PROP_POS_FRAMES) << endl;
+#endif
         float percent = cap1.get(CAP_PROP_POS_FRAMES) / cap1.get(CAP_PROP_FRAME_COUNT) * 100.0;
         float fps = 1000 / t_render.Pass();
         t_render.Reset();
