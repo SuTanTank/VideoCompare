@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 project(VideoCompare CXX)
 find_package(OpenCV REQUIRED)
-set(SRC "main.cpp")
+set(SRC "main.cpp" "icon.rc")
 add_executable(VideoCompare ${SRC})
 target_link_libraries(VideoCompare PRIVATE ${OpenCV_LIBS})
