@@ -145,10 +145,18 @@ int main(int argc, char *argv[]) {
             printf("?");
             break;
         case Mode::Crop:
-            height = min(v1.rows, v2.rows);
-            width = min(v1.cols, v2.cols);
-            v1 = v1(Rect((width - v1.cols) / 2, (height - v1.rows) / 2, v1.cols, v1.rows));
-            v2 = v2(Rect((width - v2.cols) / 2, (height - v2.rows) / 2, v2.cols, v2.rows));
+            height = max(v1.rows, v2.rows);
+            width = max(v1.cols, v2.cols);
+            if (Size(width, height) != v1.size()) {
+                cv::Mat v1x(height, width, v1.type());
+                v1.copyTo(v1x(Rect((width - v1.cols) / 2, (height - v1.rows) / 2, v1.cols, v1.rows)));
+                v1 = v1x;
+            }
+            if (Size(width, height) == v2.size()) {
+                cv::Mat v2x(height, width, v1.type());
+                v2.copyTo(v2x(Rect((width - v2.cols) / 2, (height - v2.rows) / 2, v2.cols, v2.rows)));
+                v2 = v2x;
+            }
             break;
         case Mode::Scale:
         default:
