@@ -1,3 +1,4 @@
+![icon](icons-video-compare.ico)
 # Video Compare Tool (OpenCV)
 
 As an algorithm engineer in image processing, I need to compare two videos as algorithm results a lot, sometimes back and forth, sometimes side by side. 
