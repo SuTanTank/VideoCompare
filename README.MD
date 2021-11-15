@@ -8,9 +8,11 @@ Beyond Compare doesn't support video, which is painful. So I wrote one for mysel
 ## Feature
 
 - Compare two video side-by-side (horizontally or Vertical placed) and back-and-forth.
+- Videos are resized to the same resolution if the sizes are different (Useful for comparing super-resolution results)
 - Zoom in/out and move ROI
 - Slow down the speed (no frame interpolation)
 - Step and seek forward and backward
+- Fast keyboard control
 
 ## Usage
 
@@ -46,3 +48,4 @@ Usage: VideoCompare.exe [params] 1 2
                 path to 1st video
         2 
                 path to 2nd video
+ Tip: You can drag and drop two video files onto the icon
