@@ -13,8 +13,7 @@ String keys =
 constexpr auto ABOUT =
     "Video Compare Tool by Tan SU           \n"
     "--------- USER MANUAL -------------    \n"
-    "                                       \n"
-    "Play                                   \n"
+    "Playback control                       \n"
     "    space - pause / resume             \n"
     "    esc - quit                         \n"
     "    left arrow(play) - 3 second back   \n"
@@ -75,14 +74,26 @@ int main(int argc, char *argv[]) {
     auto parser = CommandLineParser(argc, argv, keys);
     parser.about(ABOUT);
     parser.printMessage();
-    if (!parser.check() || !parser.has("@1") || !parser.has("@2")) {
+    string file1, file2;
+    if (!parser.check()) {
         printf("press any key to exit.");
         getchar();
         return -1;
     }
-
-    string file1 = parser.get<string>("@1");
-    string file2 = parser.get<string>("@2");
+    if (!parser.has("@1")) {
+        cout << "video file #1: ";
+        cin >> file1;
+    }
+    else {
+        file1 = parser.get<string>("@1");
+    }
+    if (!parser.has("@2")) {
+        cout << "video file #2: ";
+        cin >> file2;
+    }
+    else {
+        file2 = parser.get<string>("@2");
+    }
     auto cap1 = VideoCapture(file1);
     auto cap2 = VideoCapture(file2);
     if (!cap1.isOpened() || !cap2.isOpened()) {
