@@ -80,6 +80,10 @@ int main(int argc, char *argv[]) {
         getchar();
         return -1;
     }
+    if (parser.has("help")) {
+        parser.printMessage();
+        return 0;
+    }
     if (!parser.has("@1")) {
         cout << "video file #1: ";
         cin >> file1;
@@ -108,7 +112,11 @@ int main(int argc, char *argv[]) {
     auto center = Point2f(0.5f, 0.5f);
     Point offset(0, 0);
     string window_title = MakeTitle(WINDOW_NAME, file1, file2);
+    #if WIN32
     namedWindow(window_title, WINDOW_NORMAL);
+    #else 
+    namedWindow(window_title, WINDOW_AUTOSIZE);
+    #endif
     Mat frame, frame1, frame2;
     int original_delay = 1000 / cap1.get(CAP_PROP_FPS) + 0.5;
     int delay = original_delay;
