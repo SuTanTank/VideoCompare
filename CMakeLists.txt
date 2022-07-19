@@ -4,6 +4,7 @@ set(CMAKE_CONFIGURATION_TYPES
     Release RelWithDebInfo
     CACHE STRING INTERNAL FORCE)
 set(CMAKE_CXX_STANDARD 14)
+list(PREPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR})
 find_package(OpenCV REQUIRED CONFIG)
 set(SRC "main.cpp" "icon.rc")
 add_executable(VideoCompare ${SRC})

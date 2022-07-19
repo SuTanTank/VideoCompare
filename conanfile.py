@@ -1,5 +1,6 @@
 from conan.tools.cmake import CMake, CMakeToolchain
 from conan import ConanFile
+from os.path import join
 
 
 class VideoCompareConan(ConanFile):
@@ -28,9 +29,12 @@ class VideoCompareConan(ConanFile):
         cmake.build()
 
     def imports(self):
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.dylib", dst="lib", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
+        dst = ""
+        if self.settings.compiler == "Visual Studio":   
+            dst = join(dst, str(self.settings.build_type))
+        self.copy("*.dll", dst=join("bin", dst), keep_path=False)
+        self.copy("*.dylib", dst=join("lib", dst), keep_path=False)
+        self.copy("*.so", dst=join("lib", dst), keep_path=False)
 
     def package(self):
         self.copy("*VideoCompare*", dst='bin', keep_path=False)
