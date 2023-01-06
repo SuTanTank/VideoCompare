@@ -70,6 +70,23 @@ string MakeTitle(const string &prefix, const string &file1, const string &file2)
     return title;
 }
 
+void Pad(cv::Mat &in, int height, int width) {
+    int in_h = in.rows;
+    int in_w = in.cols;
+    if (in_h == height && in_w == width) {
+        return;
+    }
+    cv::Mat out(height, width, in.type());
+    if (in_h * width == in_w * height) {
+        // same aspect ratio, crop to center
+        in.copyTo(out(Rect((width - in_w) / 2, (height - in_h) / 2, in_w, in_h)));
+    }
+    else {
+        in.copyTo(out(Rect(0, 0, in_w, in_h)));
+    }
+    in = out;
+}
+
 int main(int argc, char *argv[]) {
     auto parser = CommandLineParser(argc, argv, keys);
     parser.about(ABOUT);
@@ -79,6 +96,10 @@ int main(int argc, char *argv[]) {
         printf("press any key to exit.");
         getchar();
         return -1;
+    }
+    if (parser.has("help")) {
+        parser.printMessage();
+        return 0;
     }
     if (!parser.has("@1")) {
         cout << "video file #1: ";
@@ -108,7 +129,11 @@ int main(int argc, char *argv[]) {
     auto center = Point2f(0.5f, 0.5f);
     Point offset(0, 0);
     string window_title = MakeTitle(WINDOW_NAME, file1, file2);
+#if WIN32
     namedWindow(window_title, WINDOW_NORMAL);
+#else
+    namedWindow(window_title, WINDOW_AUTOSIZE);
+#endif
     Mat frame, frame1, frame2;
     int original_delay = 1000 / cap1.get(CAP_PROP_FPS) + 0.5;
     int delay = original_delay;
@@ -147,16 +172,8 @@ int main(int argc, char *argv[]) {
         case Mode::Crop:
             height = max(v1.rows, v2.rows);
             width = max(v1.cols, v2.cols);
-            if (Size(width, height) != v1.size()) {
-                cv::Mat v1x(height, width, v1.type());
-                v1.copyTo(v1x(Rect((width - v1.cols) / 2, (height - v1.rows) / 2, v1.cols, v1.rows)));
-                v1 = v1x;
-            }
-            if (Size(width, height) == v2.size()) {
-                cv::Mat v2x(height, width, v1.type());
-                v2.copyTo(v2x(Rect((width - v2.cols) / 2, (height - v2.rows) / 2, v2.cols, v2.rows)));
-                v2 = v2x;
-            }
+            Pad(v1, height, width);
+            Pad(v2, height, width);
             break;
         case Mode::Scale:
         default:
