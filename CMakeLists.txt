@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 14)
 list(PREPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR})
 find_package(OpenCV REQUIRED CONFIG)
 set(SRC "main.cpp" "icon.rc")
-add_executable(VideoCompare ${SRC})
+add_executable(VideoCompare MACOSX_BUNDLE ${SRC})
 target_link_libraries(VideoCompare PRIVATE ${OpenCV_LIBS})
 set_target_properties( VideoCompare
     PROPERTIES
